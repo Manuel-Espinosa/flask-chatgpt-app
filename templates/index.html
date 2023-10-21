@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ChatGPT Chat App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Chat con ChatGPT</h1>
+
+            <!-- Error message section -->
+            <div class="notification is-danger" id="error-box" style="display: none;"></div>
+
+            <div class="box">
+                <div class="content" id="chat-box"></div>
+            </div>
+
+            <form id="chat-form" onsubmit="return sendQuestion();">
+                <div class="field">
+                    <div class="control">
+                        <input class="input" type="text" id="user-input" placeholder="Ask a question...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-primary" type="submit">Send</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const errorBox = document.getElementById('error-box');
+    
+        chatForm.addEventListener('submit', async function (event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+    
+            // Clear previous error messages
+            errorBox.style.display = 'none';
+    
+            // Get the user's question
+            const userMessage = userInput.value;
+            if (userMessage.trim() === '') return; // Prevent form submission if no question
+    
+            // Add user message to the chat box
+            chatBox.innerHTML += `<p><strong>Tu:</strong> ${userMessage}</p>`;
+    
+            // Clear the input field
+            userInput.value = '';
+    
+            // Send the user message to the server
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: userMessage }),
+            });
+    
+            if (response.ok) {
+                const data = await response.json();
+                const chatGptResponse = data.answer;
+    
+                // Add ChatGPT's response to the chat box
+                chatBox.innerHTML += `<p><strong>ChatGPT:</strong> ${chatGptResponse}</p>`;
+            } else {
+                // Handle the error response here
+                const errorData = await response.json();
+                const errorMessage = errorData.error;
+    
+                // Display the error message in the error message section
+                errorBox.innerText = errorMessage;
+                errorBox.style.display = 'block';
+            }
+        });
+    </script>
+    
+    
+</body>
+</html>
